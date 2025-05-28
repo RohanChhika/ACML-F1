@@ -43,7 +43,7 @@ with st.container():
     track_temperature = st.number_input("Track temperature", step=0.1, format="%.1f")
     wind_direction =  st.number_input("Wind direction", step=1)
     wind_speed = st.number_input("Wind speed", step=0.1)
-    rainfall = st.number_input("Wind speed", step=1)
+    rainfall = st.number_input("Rainfall", step=1)
     pressure = st.number_input("Pressure", step=0.1)
     humidity = st.number_input("Humidity", step=0.1)
 
@@ -73,3 +73,5 @@ with st.container():
             "humidity": humidity,
             "pressure": pressure
         }
+
+    
