@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from visualisations.plotter import Plotter
-
+#meghan initial with 2024
 losses=[]
 
 # 1. Load dataset

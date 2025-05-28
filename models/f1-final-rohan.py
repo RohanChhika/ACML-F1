@@ -7,6 +7,7 @@ from sklearn.preprocessing import StandardScaler
 import numpy as np
 import matplotlib.pyplot as plt
 
+###########rohans improvement with splitting used with cleaned with year
 # Load cleaned dataset
 df = pd.read_csv("./data/f1_cleaned_with_year.csv")
 target = "average_lap_time"

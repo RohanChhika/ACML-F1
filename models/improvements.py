@@ -7,7 +7,7 @@ from sklearn.preprocessing import StandardScaler
 import numpy as np
 import matplotlib.pyplot as plt
 
-
+##########shayur's version cleaned with year
 # Load cleaned dataset
 # df = pd.read_csv("./data/both_years.csv") 
 df = pd.read_csv("./data/f1_cleaned_with_year.csv")
