@@ -41,7 +41,9 @@ This is a **Streamlit** web application that predicts the results of a Formula 1
 
 Requirements
 Install dependencies using:
-pip install -r requirements.txt
+pip install streamlit
+pip install pandas
+pip install torch
 
 How to Run
 streamlit run Home.py

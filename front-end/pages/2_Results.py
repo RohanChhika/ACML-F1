@@ -1,8 +1,8 @@
 import streamlit as st
 import pandas as pd
+import torch
 import sys
 import os
-import torch
 
 torch.classes.__path__ = [] 
 

@@ -9,8 +9,8 @@ Our team has worked collaboratively to analyze Formula 1 data and predict race o
 **Meet the Authors:**
 
 - **Rohan Chhika** – Student Number: 2543404
-- **Name 2** – Student Number: [Student Number 2]
-- **Name 3** – Student Number: [Student Number 3]
+- **Shayur Govin** – Student Number: 2558583
+- **Armando Abelho** – Student Number: 2538862
 - **Meghan Ireland** – Student Number: 2425833
 
 Each of us contributed unique skills and expertise, 

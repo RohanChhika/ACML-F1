@@ -3,6 +3,8 @@ import sys
 import pandas as pd
 import torch
 from torch import nn
+import numpy as np
+import matplotlib.pyplot as plt
 from torch.utils.data import Dataset, DataLoader
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
@@ -12,10 +14,10 @@ from visualisations.plotter import Plotter
 
 losses = []
 
-df = pd.read_csv("./data/data-with-lap-length/2024.csv")
+df = pd.read_csv("../data/both_years.csv")
 
 targetColumn = "average_lap_time"
-categoricalColumns = ["session_type", "year", "driver_number", "driver_name", "position"]
+categoricalColumns = ["year", "driver_number", "quali_position"]
 
 df = pd.get_dummies(df, columns=categoricalColumns)
 
@@ -74,21 +76,53 @@ for epoch in range(epochs):
         loss.backward()
         optimizer.step()
         runningLoss += loss.item()
-
     avgLoss = runningLoss / len(trainLoader)
+
     print(f"Epoch {epoch+1}/{epochs}, Loss: {avgLoss:.4f}")
+
     losses.append(avgLoss)
 
 model.eval()
+preds, trueVals = [], []
+maeTotal = 0
+
 with torch.no_grad():
     totalLoss = 0
     for features, labels in testLoader:
         outputs = model(features)
+        preds.append(outputs)
+        trueVals.append(labels)
+
         loss = criterion(outputs, labels)
         totalLoss += loss.item()
 
+        maeTotal += torch.mean(torch.abs(outputs - labels)).item()
+
     avgTestLoss = totalLoss / len(testLoader)
+    avgMAE = maeTotal / len(testLoader) 
+
     print(f"Test MSE: {avgTestLoss:.4f}")
+    rmse = np.sqrt(avgTestLoss)
+    print(f"Test RMSE: {rmse:.4f}")
+    print(f"Test MAE: {avgMAE:.4f}")
+
+preds = torch.cat(preds).squeeze().numpy()
+trueVals = torch.cat(trueVals).squeeze().numpy()
+
+for t in [1, 2, 5, 10]:
+    print(f"Accuracy within ±{t}s: {np.mean(np.abs(preds - trueVals) <= t) * 100:.2f}%")
+
+
+plt.figure(figsize=(10, 6))
+plt.scatter(trueVals, preds, alpha=0.6)
+plt.plot([min(trueVals), max(trueVals)], [min(trueVals), max(trueVals)], color='red', linestyle='--', label='Ideal Prediction')
+plt.xlabel("Actual Lap Time (s)")
+plt.ylabel("Predicted Lap Time (s)")
+plt.title("Predicted vs Actual Lap Times")
+plt.legend()
+plt.grid(True)
+plt.show()
 
 plotter = Plotter()
 plotter.plot_loss(losses)
+
