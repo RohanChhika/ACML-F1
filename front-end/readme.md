@@ -10,7 +10,7 @@ This is a **Streamlit** web application that predicts the results of a Formula 1
   - Qualifying lap times and positions
   - Track and weather conditions
 - Displays the predicted results in a styled, interactive table
-- Easy to modify for new datasets or live data integration
+- Easy to modify for new datasets
 
 ---
 
@@ -46,4 +46,4 @@ pip install pandas
 pip install torch
 
 How to Run
-streamlit run Home.py
+streamlit run Home.py (from /front-end)

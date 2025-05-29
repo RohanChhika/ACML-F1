@@ -141,16 +141,12 @@ st.session_state["val_losses"] = val_losses
 
 df = pd.DataFrame(sorted_results)
 
-# Reset index for cleaner display
 df_reset = df.reset_index(drop=True)
 
-# Streamlit app UI
 st.markdown("# 🏁 Predicted Race Results")
 st.caption("Data shown is the predicted average lap time for each driver based on the data inputted and the training data available.")
 
-# Styling: alternate row highlighting
 def highlight_alternate_rows(row):
     return ['background-color: #f24962; color: #4a4848' if row.name % 2 else '' for _ in row]
 
-# Show styled dataframe
 st.dataframe(df_reset.style.apply(highlight_alternate_rows, axis=1))

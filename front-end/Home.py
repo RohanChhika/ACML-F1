@@ -1,11 +1,7 @@
 import streamlit as st
 
-# Set page configuration
-
-# Set up page title and icon
 st.set_page_config(page_title="F1 Predictor", page_icon="🏎️")
 
-# Custom styling with red theme
 st.markdown(
     """
     <style>
@@ -30,7 +26,6 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# Content
 st.title("🏁 Welcome to the F1 Predictor")
 st.markdown(
     """
@@ -44,7 +39,7 @@ st.markdown(
             <li><b>Input driver and team data</b> to generate race predictions</li>
             <li><b>Explore model accuracy</b> and performance graphs</li>
         </ul>
-        Built with ❤️ using Python, Pandas, and Streamlit.
+        Built using Python, Pandas, Torch and Streamlit.
         <br><br>
         Use the sidebar to navigate to prediction tools and data exploration pages.
     </div>

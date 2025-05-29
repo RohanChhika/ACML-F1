@@ -4,11 +4,9 @@ from torch import nn
 from torch.utils.data import Dataset, DataLoader
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-import numpy as np
-import matplotlib.pyplot as plt
 import os
 
-driver_names = {
+driverNames = {
     1: 'Max VERSTAPPEN', 2: 'Logan SARGEANT', 4: 'Lando NORRIS',
     10: 'Pierre GASLY', 11: 'Sergio PEREZ', 14: 'Fernando ALONSO',
     16: 'Charles LECLERC', 20: 'Kevin MAGNUSSEN', 21: 'Maxwell ESTERSON',
@@ -29,24 +27,24 @@ driver_names = {
     62: 'Ryo HIRAKAWA', 72: 'Frederik VESTI'
 }
 
-def make_predictions(race_data, track_data):
-    file_path = os.path.join(os.path.dirname(__file__), "both_years.csv")
-    df = pd.read_csv(file_path) 
+def make_predictions(raceData, trackData):
+    filePath = os.path.join(os.path.dirname(__file__), "both_years.csv")
+    df = pd.read_csv(filePath) 
     target = "average_lap_time"
 
     df = df[df[target] < df[target].quantile(0.99)]
 
-    y_scaler = StandardScaler()
-    y_scaled = y_scaler.fit_transform(df[[target]]).flatten()
+    yScalar = StandardScaler()
+    yScaled = yScalar.fit_transform(df[[target]]).flatten()
 
     X = df.drop(columns=[target])
-    y = y_scaled
+    y = yScaled
 
     scaler = StandardScaler()
-    X_scaled = scaler.fit_transform(X)
+    xScaled = scaler.fit_transform(X)
 
 
-    X_train, X_valtest, y_train, y_valtest = train_test_split(X_scaled, y, test_size=0.3, random_state=42)
+    X_train, X_valtest, y_train, y_valtest = train_test_split(xScaled, y, test_size=0.3, random_state=42)
     X_val, X_test, y_val, y_test = train_test_split(X_valtest, y_valtest, test_size=0.5, random_state=42)
 
     class F1Dataset(Dataset):
@@ -60,15 +58,15 @@ def make_predictions(race_data, track_data):
         def __getitem__(self, idx):
             return self.X[idx], self.y[idx]
 
-    train_loader = DataLoader(F1Dataset(X_train, y_train), batch_size=16, shuffle=True)
-    val_loader = DataLoader(F1Dataset(X_val, y_val), batch_size=16)
-    test_loader = DataLoader(F1Dataset(X_test, y_test), batch_size=16)
+    trainLoader = DataLoader(F1Dataset(X_train, y_train), batch_size=16, shuffle=True)
+    valLoader = DataLoader(F1Dataset(X_val, y_val), batch_size=16)
+    testLoader = DataLoader(F1Dataset(X_test, y_test), batch_size=16)
 
     class F1Predictor(nn.Module):
-        def __init__(self, input_size):
+        def __init__(self, inputSize):
             super(F1Predictor, self).__init__()
             self.model = nn.Sequential(
-                nn.Linear(input_size, 64),
+                nn.Linear(inputSize, 64),
                 nn.ReLU(),
                 nn.Dropout(0.1),
                 nn.Linear(64, 32),
@@ -79,40 +77,40 @@ def make_predictions(race_data, track_data):
         def forward(self, x):
             return self.model(x)
 
-    input_size = X.shape[1]
-    model = F1Predictor(input_size)
+    inputSize = X.shape[1]
+    model = F1Predictor(inputSize)
     criterion = nn.SmoothL1Loss()
     optimizer = torch.optim.Adam(model.parameters(), lr=0.0005)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', patience=5, factor=0.5)
 
-    train_losses, val_losses = [], []
+    trainLosses, valLosses = [], []
     best_val_loss = float('inf')
     patience = 15
     trigger_times = 0
 
     for epoch in range(100):
         model.train()
-        total_train_loss = 0
-        for xb, yb in train_loader:
+        totalTrainLoss = 0
+        for xb, yb in trainLoader:
             optimizer.zero_grad()
             pred = model(xb)
             loss = criterion(pred, yb)
             loss.backward()
             optimizer.step()
-            total_train_loss += loss.item()
-        train_loss = total_train_loss / len(train_loader)
+            totalTrainLoss += loss.item()
+        train_loss = totalTrainLoss / len(trainLoader)
 
         model.eval()
         total_val_loss = 0
         with torch.no_grad():
-            for xb, yb in val_loader:
+            for xb, yb in valLoader:
                 pred = model(xb)
                 loss = criterion(pred, yb)
                 total_val_loss += loss.item()
-        val_loss = total_val_loss / len(val_loader)
+        val_loss = total_val_loss / len(valLoader)
 
-        train_losses.append(train_loss)
-        val_losses.append(val_loss)
+        trainLosses.append(train_loss)
+        valLosses.append(val_loss)
         scheduler.step(val_loss)
 
         if val_loss < best_val_loss:
@@ -127,52 +125,50 @@ def make_predictions(race_data, track_data):
     model.load_state_dict(best_model_state)
 
     model.eval()
-    preds, true_vals = [], []
+    preds, trueVals = [], []
     with torch.no_grad():
-        for xb, yb in test_loader:
+        for xb, yb in testLoader:
             preds.append(model(xb))
-            true_vals.append(yb)
+            trueVals.append(yb)
 
     preds = torch.cat(preds).numpy().flatten()
-    true_vals = torch.cat(true_vals).numpy().flatten()
+    trueVals = torch.cat(trueVals).numpy().flatten()
 
-    preds = y_scaler.inverse_transform(preds.reshape(-1, 1)).flatten()
-    true_vals = y_scaler.inverse_transform(true_vals.reshape(-1, 1)).flatten()
+    preds = yScalar.inverse_transform(preds.reshape(-1, 1)).flatten()
+    trueVals = yScalar.inverse_transform(trueVals.reshape(-1, 1)).flatten()
 
-    # --------------------------- Final step, prediction: ---------------------------
-    # Align columns with training data
-    train_columns = df.drop(columns=[target])  # Features used during training
-    train_columns = pd.get_dummies(train_columns).columns  # Columns after one-hot encoding
+    trainCols = df.drop(columns=[target])  
+    trainCols = pd.get_dummies(trainCols).columns  
 
     results = []
 
-    for i in range(len(race_data)):
-        new_data = {
-        "driver_number": race_data[i]["driver_number"],
-        "year": track_data["year"],
-        "lap_length": track_data["lap_length"],
-        "air_temperature": track_data["air_temperature"],
-        "humidity": track_data["humidity"],
-        "pressure": track_data["pressure"],
-        "rainfall": track_data["rainfall"],
-        "track_temperature": track_data["track_temperature"],
-        "wind_direction": track_data["wind_direction"],
-        "wind_speed": track_data["wind_speed"],
-        "quali_lap_time": race_data[i]["quali_lap_time"],
-        "quali_position": race_data[i]["quali_position"],
+    for i in range(len(raceData)):
+        newData = {
+        "driver_number": raceData[i]["driver_number"],
+        "year": trackData["year"],
+        "lap_length": trackData["lap_length"],
+        "air_temperature": trackData["air_temperature"],
+        "humidity": trackData["humidity"],
+        "pressure": trackData["pressure"],
+        "rainfall": trackData["rainfall"],
+        "track_temperature": trackData["track_temperature"],
+        "wind_direction": trackData["wind_direction"],
+        "wind_speed": trackData["wind_speed"],
+        "quali_lap_time": raceData[i]["quali_lap_time"],
+        "quali_position": raceData[i]["quali_position"],
         }
 
-        new_df = pd.DataFrame([new_data])
-        new_df = pd.get_dummies(new_df)
-        new_df = new_df.reindex(columns=train_columns, fill_value=0)
-        new_X = scaler.transform(new_df)
-        new_tensor = torch.tensor(new_X, dtype=torch.float32)
+        newDf = pd.DataFrame([newData])
+        newDf = pd.get_dummies(newDf)
+        newDf = newDf.reindex(columns=trainCols, fill_value=0)
+        newX = scaler.transform(newDf)
+        newTensor = torch.tensor(newX, dtype=torch.float32)
         model.eval()
-        predicted_time = 0
+        predictedTime = 0
         with torch.no_grad():
-            prediction = model(new_tensor)
-            predicted_time = y_scaler.inverse_transform(prediction.numpy()).flatten()[0]
+            prediction = model(newTensor)
+            predictedTime = yScalar.inverse_transform(prediction.numpy()).flatten()[0]
 
-        results.append({"Driver":driver_names.get(race_data[i]["driver_number"], "Unknown Driver"), "Predicted average lap time (seconds)":predicted_time})
+        results.append({"Driver":driverNames.get(raceData[i]["driver_number"], "Unknown Driver"), "Predicted average lap time (seconds)":predictedTime})
     sorted_results = sorted(results, key=lambda x: x["Predicted average lap time (seconds)"])
-    return sorted_results, train_losses, val_losses
+    return sorted_results, trainLosses, valLosses

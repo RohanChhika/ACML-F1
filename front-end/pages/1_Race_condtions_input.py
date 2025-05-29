@@ -36,7 +36,6 @@ st.markdown("""
 with st.container():
     st.title("🏁 F1 Predictor Input")
 
-    # Input fields
     year = st.selectbox("Year", [2024,2025])
     lap_length = st.number_input("Lap Length (km)", step=0.001, format="%.3f")
     air_temperature = st.number_input("Air Temperature", step=0.1, format="%.1f")
@@ -47,7 +46,6 @@ with st.container():
     pressure = st.number_input("Pressure", step=0.1)
     humidity = st.number_input("Humidity", step=0.1)
 
-    # Generate button
     if st.button("Generate"):
         st.success("✅ Input captured successfully!")
         st.write("Here's what you entered:")
