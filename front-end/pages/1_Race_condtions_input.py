@@ -34,7 +34,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 with st.container():
-    st.title("🏁 F1 Predictor Input")
+    st.title("🏁 Race Conditions Input")
 
     year = st.selectbox("Year", [2024,2025])
     lap_length = st.number_input("Lap Length (km)", step=0.001, format="%.3f")
